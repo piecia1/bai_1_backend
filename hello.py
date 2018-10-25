@@ -167,7 +167,8 @@ def params():
         if(not result_message):
             cur.close()
             con.close()
-            abort(make_response("Nie ma wiadomosci o takim Id w bazie"))
+            #abort(make_response("Nie ma wiadomosci o takim Id w bazie"))
+            abort(401)
         #Pobranie uzytkownikow ktorzy maja uprawnienia do edycji
         bind={'id_message':id_message}
         sql='SELECT user_id FROM allowed_messages WHERE message_id=:id_message'
@@ -194,7 +195,8 @@ def params():
         if(not user_can_edit and not user_is_owner):
             cur.close()
             con.close()
-            abort(make_response("Nie jestes ani wlascicielem ani nie masz uprawnien"))
+            #abort(make_response("Nie jestes ani wlascicielem ani nie masz uprawnien"))
+            abort(401)
         #Przypadek 2 nie jest wlascicielem ale ma uprawnienia
         elif(not user_is_owner and user_can_edit):
             cur.close()
@@ -229,8 +231,8 @@ def params():
         if(not result_message):
             cur.close()
             con.close()
-            abort(make_response("Nie ma wiadomosci o takim Id w bazie"))
-        
+            #abort(make_response("Nie ma wiadomosci o takim Id w bazie"))
+            abort(401)
         #Pobranie uzytkownikow ktorzy maja uprawnienia do edycji
         allowed_users=selectAllowedUser(cur, id_message)
         #sprawdzenie czy zalogowany uzytkownik ma mozliwosc edytowania
