@@ -1,10 +1,15 @@
+# -*- coding: utf-8 -*-
+
 from flask import Flask,jsonify,json,abort
 from flask import request,make_response
 from flask_cors import CORS, cross_origin
 import cx_Oracle
 import json
+#import connect
+
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+database_url='piecia/piecia1@localhost:1521/xe'
 
 @app.before_request
 def option_autoreply():
@@ -47,135 +52,358 @@ def set_allow_origin(resp):
 
 
     return resp
-#Logowanie
+
+"""Formularz I
+Wyświetlanie dla niezalogowanego uzytkownika
+Zwracay json dla niezalogowanego użytkownika
+"""
+@app.route("/Ps02.php")
+@cross_origin(origin='*')
+def notLogIn():
+    con = cx_Oracle.connect('piecia/piecia1@localhost:1521/xe')
+    cur = con.cursor()
+    cur.execute('SELECT * FROM users ORDER BY users.user_id')
+    result_users = cur.fetchall()
+    cur.execute('SELECT * FROM messages')
+    result_messages=cur.fetchall()
+    lista=[]	
+    for res_user in result_users:
+        for res_message in result_messages:
+            if(res_user[0]==res_message[1]):
+                lista.append({'name':res_user[1],'text':res_message[2],'edit':False,'delete':False,'message_id':res_message[0]})   
+    cur.close()
+    con.close()
+    return jsonify(lista)
+
+"""Formularz II
+Logowanie - zwracany json dla zalogowanego użytkownika
+"""
 @app.route('/Ps04.php', methods=['GET'])
 @cross_origin(origin='*')
 def login():
-    con = cx_Oracle.connect('piecia/piecia1@localhost:1521/xe')
-    cur = con.cursor()
     auth = request.authorization
-    login,password=auth.username, auth.password
-    bind = {'login': login}
-    sql = 'select * from users where name = :login'
-    cur.prepare(sql)
-    cur.execute(sql, bind)
-    res = cur.fetchone()
-    cur.close()
-    con.close()
-    if (not res):
+    if(not auth):
         abort(401)
-    if (res[2]==password):
-        return 'OK'
+    login,password=auth.username, auth.password
+    con = cx_Oracle.connect(database_url)
+    cur = con.cursor()
+    logged_user=checkUser(cur,login,password)
+    #Jezeli nie ma tekiego uzytkownika zwroc 401
+    if (not logged_user):
+        cur.close()
+        con.close()
+        abort(401)
     else:
-        abort(401)
+        lista=dataFromBase(cur,logged_user[0])
+        cur.close()
+        con.close()
+        return jsonify(lista)
 
-#Wyswietlanie dla niezalogowanego uzytkownika
-@app.route("/Ps02.php")
-@cross_origin(origin='*')
-def hello():
-    con = cx_Oracle.connect('piecia/piecia1@localhost:1521/xe')
-    cur = con.cursor()
-    cur1=con.cursor()
-    cur.execute('SELECT * FROM users ORDER BY users.user_id')
-    cur1.execute('SELECT * FROM messages')
-    res = cur.fetchall()
-    res1=cur1.fetchall()
-    lista=[]	
-    for result in res:
-        for result1 in res1:
-            if(result[0]==result1[1]):
-                lista.append({'name':result[1],'text':result1[2],'edit':False,'delete':False,'message_id':result1[0]})
-    
-    cur.close()
-    con.close()
-    return jsonify(lista)
-
-
-#wyswietlanie dla zalogowanego uzytkownika
-@app.route('/Ps041.php', methods=['GET'])
-@cross_origin(origin='*')
-def edit_massage():
-    auth = request.authorization
-    login,password=auth.username, auth.password
-    con = cx_Oracle.connect('piecia/piecia1@localhost:1521/xe')
-    cur_user = con.cursor()
-    cur_message=con.cursor()
-    cur_user.execute('SELECT * FROM users ORDER BY users.user_id')
-    cur_message.execute('SELECT * FROM messages')
-    res_user = cur_user.fetchall()
-    res_message=cur_message.fetchall()
-    lista=[]	
-    for result_user in res_user:
-        if(login==result_user[1]):
-            user_id=result_user[0]
-            break
-        else:
-            user_id=None
-    for result_user in res_user:
-        for result_message in res_message:
-            if(result_user[0]==result_message[1]):
-                if(result_message[1]==user_id):
-                    lista.append({'name':result_user[1],'text':result_message[2],'edit':True,'delete':True,'message_id':result_message[0]})
-                else:
-                    lista.append({'name':result_user[1],'text':result_message[2],'edit':False,'delete':False,'message_id':result_message[0]})
-    cur_user.close()
-    cur_message.close()
-    con.close()
-    return jsonify(lista)
-
-#dla zalogowanego uzytkownika, rozne akcje
+"""Formularz 3
+Różne akcje dla zalogowanego użytkownika
+"""
 @app.route('/Ps042.php', methods=['GET'])
 @cross_origin(origin='*')
 def params():
+    # W pierwszej kolejnosci sprawdzenie czy uzytkownik jest w bazie 
     auth = request.authorization
+    if(not auth):
+        abort(401)
     login,password=auth.username, auth.password
-    con = cx_Oracle.connect('piecia/piecia1@localhost:1521/xe')
-    cur_user = con.cursor()
-    cur_message=con.cursor()
-    bind={'login':login}
-    cur_user.execute('SELECT FROM users WHERE name name=:login')
-    cur_message.execute('SELECT * FROM messages')
-    res_user = cur_user.fetchall()
-
-    par = request.args.get('par')
+    con = cx_Oracle.connect(database_url)
+    cur = con.cursor()
+    logged_user=checkUser(cur,login,password)
+    if (not logged_user):
+        cur.close()
+        con.close()
+        abort(401)
+    else:
+        id_logged_user=logged_user[0]
+ 
+    #Tylko zalogowany uzytkownik, moze wykonywać akcje 
     action = request.args.get('action')
     if (action == 'Usuń'):
-        query="DELETE FROM messages WHERE message_id=%s"%par
-        cur_message.execute(query)
-        cur_message.close()
-        con.commit()
-        con.close()
+        id_message_to_delete=request.args.get('par')
+        message_owner=checkMessageOwner(cur,id_message_to_delete,id_logged_user)
+        #jesli jest wiadomosc o takim id oraz jej wlascicielem jest obecnie zalogowany uzytkownik to usun wiadomosc
+        if(message_owner):
+            #Usuwam wiadomosc 
+            bind={'id_message':id_message_to_delete}
+            sql='DELETE FROM messages WHERE message_id=:id_message'
+            cur.prepare(sql)
+            cur.execute(sql,bind)
+            con.commit() # zatwierdzenie operacji usuniecia wiadomosci
+            #usuwanie z allowed_messages
+            bind={'id_message':id_message_to_delete}
+            sql='DELETE FROM allowed_messages WHERE message_id=:id_message'
+            cur.prepare(sql)
+            cur.execute(sql,bind)
+            con.commit() # zatwierdzenie operacji usuniecia wiadomosci
+            lista=dataFromBase(cur,id_logged_user)
+            cur.close()
+            con.close()
+            return jsonify(lista)
+        #jesli nie ma wiadomosci o takim id lub uzytkownik nie jest wlascicielem zwroc wyjatek
+        else: 
+            cur.close()
+            con.close()
+            abort(401)
+
     elif(action=='Dodaj'):
-        pass
-    return jsonify(query)
+        text_message=request.args.get('par')
+        bind={'wiadomosc':text_message,'id_user':id_logged_user}
+        sql='insert into messages values(message_id.nextval, :id_user,:wiadomosc)'
+        cur.prepare(sql)
+        cur.execute(sql,bind)
+        con.commit()
+        lista=dataFromBase(cur,id_logged_user)
+        cur.close()
+        con.close()
+        return jsonify(lista)
+
+    elif(action=='Edytuj'):     
+        id_message=request.args.get('par')
+        result_message=checkMessage(cur,id_message)
+        if(not result_message):
+            cur.close()
+            con.close()
+            abort(make_response("Nie ma wiadomosci o takim Id w bazie"))
+        #Pobranie uzytkownikow ktorzy maja uprawnienia do edycji
+        bind={'id_message':id_message}
+        sql='SELECT user_id FROM allowed_messages WHERE message_id=:id_message'
+        cur.prepare(sql)
+        cur.execute(sql,bind)
+        allowed_users_prepare=cur.fetchall()
+        allowed_users=[]#lista uzytkownikow ktorzy maja prawo edycji
+        if(allowed_users_prepare):
+            for element in allowed_users_prepare:
+                for item in element:
+                    allowed_users.append(item)
+
+        #sprawdzenie czy zalogowany uzytkownik ma mozliwosc edytowania
+        user_can_edit=False 
+        for allowed_user in allowed_users:
+            if(allowed_user==id_logged_user):
+                user_can_edit=True
+        #sprawdzenie czy zalogowany uzytkownik jest wlascicielem
+        user_is_owner=False
+        if(id_logged_user==result_message[1]):
+            user_is_owner=True
+
+        #Przypadek 1 nie jest ani wlascicielem ani nie ma uprawnien
+        if(not user_can_edit and not user_is_owner):
+            cur.close()
+            con.close()
+            abort(make_response("Nie jestes ani wlascicielem ani nie masz uprawnien"))
+        #Przypadek 2 nie jest wlascicielem ale ma uprawnienia
+        elif(not user_is_owner and user_can_edit):
+            cur.close()
+            con.close()
+            return jsonify({'message_id':result_message[0],'text':result_message[2]})
+        #Przypadek 3 jest wlascicielem
+        elif(user_is_owner):
+            #Pobieranie wszystkich uzytkownikow
+            sql='SELECT * FROM users'
+            cur.execute(sql)
+            all_users=cur.fetchall()
+            #Sprawdznie nazw uzytkownikow ktorzy uzytkownicy maja prawo edycji
+            list_user=[]
+            for user in all_users:
+                #jezeli ma prawo edycji 
+                if(user[0] in allowed_users):
+                    list_user.append({'name':user[1],'edit':True})
+                #jezeli jest wlascicielem
+                elif(user[0]==id_logged_user):
+                    pass
+                #nie ma praw edycji
+                else:
+                    list_user.append({'name':user[1],'edit':False})
+            list_return={'message_id':result_message[0],'text':result_message[2],'users':list_user}
+            cur.close()
+            con.close()
+            return jsonify(list_return)
+    
+    elif(action=='Zatwierdź'):
+        id_message=request.args.get('par2')
+        result_message=checkMessage(cur,id_message)
+        if(not result_message):
+            cur.close()
+            con.close()
+            abort(make_response("Nie ma wiadomosci o takim Id w bazie"))
+        
+        #Pobranie uzytkownikow ktorzy maja uprawnienia do edycji
+        allowed_users=selectAllowedUser(cur, id_message)
+        #sprawdzenie czy zalogowany uzytkownik ma mozliwosc edytowania
+        user_can_edit=False 
+        for allowed_user in allowed_users:
+            if(allowed_user==id_logged_user):
+                user_can_edit=True
+        #sprawdzenie czy jest wlascicielem
+        user_is_owner=False
+        if(id_logged_user==result_message[1]):
+            user_is_owner=True
+
+        #Przypadek 1 nie jest ani wlascicielem ani nie ma uprawnien
+        if(not user_can_edit and not user_is_owner):
+            abort(401)
+        #Przypadek 2 nie jest wlascicielem ale ma uprawnienia czyli moze zmienic tekst, ale nie moze nadawac uprawnien
+        elif(not user_is_owner and user_can_edit):
+            text_message=request.args.get('par')
+            if(text_message):
+                bind={'text_messages':text_message,'id_message':id_message}
+                sql='UPDATE messages SET text=:text_messages WHERE message_id=:id_message'
+                cur.prepare(sql)
+                cur.execute(sql,bind)
+                con.commit()
+                lista=dataFromBase(cur,id_logged_user)
+                cur.close()
+                con.close()
+                return jsonify(lista)
+            else:
+                cur.close()
+                con.close()
+                return jsonify(401)
+            
+        #Przypadek 3 jest wlascicielem
+        elif(user_is_owner):
+            text_messages=request.args.get('par')
+            if(text_messages):
+                bind={'text_messages':text_messages,'id_message':id_message}
+                sql='UPDATE messages SET text=:text_messages WHERE message_id=:id_message'
+                cur.prepare(sql)
+                cur.execute(sql,bind)
+                con.commit()
+
+            every_good=True
+            for key, value in request.args.items():
+                #dla id_wiadomosci oraz akcji nie wykonuj nic
+                if(key=='par' or key=='action' or key=='par2'):
+                    pass
+                else:
+                    every_good=checkUserId(cur,value,id_message)
+                    if(not every_good):
+                        break
+            if(every_good):    
+                bind={'id_message':id_message}
+                sql='DELETE FROM allowed_messages WHERE message_id=:id_message'
+                cur.prepare(sql)
+                cur.execute(sql,bind)
+                con.commit()
+                for key, value in request.args.items():
+                    #dla id_wiadomosci oraz akcji nie wykonuj nic
+                    if(key=='par' or key=='action' or key=='par2'):
+                        pass
+                    else:
+                        bind={'id_message':id_message,'id_user':value}
+                        sql='insert into allowed_messages values(:id_user,:id_message)'
+                        cur.prepare(sql)
+                        cur.execute(sql,bind)
+            """else:
+                bind={'id_message':id_message}
+                sql='DELETE FROM allowed_messages WHERE message_id=:id_message'
+                cur.prepare(sql)
+                cur.execute(sql,bind)
+                con.commit()
+            """ 
+            con.commit()
+            lista=dataFromBase(cur,id_logged_user)
+            cur.close()        
+            con.close()
+            return jsonify(lista)
+
+    else:
+        cur.close()
+        con.close()
+        return (jsonify('Akcja nieznana'))
 
 
+"""Sprawdzenie czy jest taki uzytkownik w bazie danych
+"""
+def checkUserId(cur,userId,id_message):
+    bind={'id_user':userId}
+    sql='SELECT * FROM users WHERE user_id=:id_user'
+    cur.prepare(sql)
+    cur.execute(sql,bind)
+    result_user=cur.fetchone()
+    is_owner=checkMessageOwner(cur,id_message,userId)
+    # nie ma takiego uzytkownika
+    if(not result_user):
+        return False
+    #jest taki uzytkownika, ale jest wlascicielem
+    elif(result_user and is_owner):
+        return False
+    #jest uzytkownik i nie jest wlacicielem
+    else:
+        return True
 
-    #cur.execute('SELECT messages.text FROM messages INNER JOIN users ON users.user_id=2 ')
-    #head=request.headers.get('User-Agent')
-    #print(head)
-    #nazwa=[{'name':'admin','text':'aaaaa','edit':True,'delete':True}]
-    #zmienna=jsonify(nazwa)
-    #print(res)
-    #r=make_response(jsonify(nazwa))
-    #r.headers.set('aaa', "default-src 'self'")
+def checkUser(cur,login,password):
+    bind = {'login': login,'password_check':password}
+    sql = 'select * from users where name = :login AND password=:password_check'
+    cur.prepare(sql)
+    cur.execute(sql, bind)
+    logged_user = cur.fetchone() 
+    return logged_user  
+"""Sprawdzenie czy jest taka wiadomosc w bazie danych
+"""  
+def checkMessage(cur, id_message):
+  
+    bind={'id_message':id_message}
+    sql='SELECT * FROM messages WHERE message_id=:id_message'
+    cur.prepare(sql)
+    cur.execute(sql,bind)  
+    return cur.fetchone()
 
+def selectAllowedUser(cur,id_message):
+    bind={'id_message':id_message}
+    sql='SELECT user_id FROM allowed_messages WHERE message_id=:id_message'
+    cur.prepare(sql)
+    cur.execute(sql,bind)
+    allowed_users_prepare=cur.fetchall()
+    allowed_users=[]#lista uzytkownikow ktorzy maja prawo edycji
+    if(allowed_users_prepare):
+        for element in allowed_users_prepare:
+            for item in element:
+                allowed_users.append(item)
+    return allowed_users
 
-@app.route("/")
-def index():
-	return "Index page"
+def checkMessageOwner(cur,id_message_to_delete,id_logged_user):
+        bind={'id_message':id_message_to_delete,'id_user':id_logged_user}
+        #Sprawdzam czy jest wiadomosc o takim id oraz czy jej wlascicielem jest obecnie zalogowany uzytkownik
+        sql='SELECT * FROM messages WHERE message_id=:id_message AND user_id=:id_user'
+        cur.prepare(sql)
+        cur.execute(sql,bind)
+        result_message=cur.fetchone()
+        if(result_message):
+            return True
+        else:
+            return False
 
-@app.route('/user/<username>')
-def show_user_profile(username):
-    # show the user profile for that user
-    return 'User %s' % username
-
-@app.route('/post/<int:post_id>')
-def show_post(post_id):
-    # show the post with the given id, the id is an integer
-    return 'Post %d' % post_id
-
-@app.route('/path/<path:subpath>')
-def show_subpath(subpath):
-    # show the subpath after /path/
-    return 'Subpath %s' % subpath
+def dataFromBase(cur,id_user):
+    cur.execute('SELECT * FROM users')
+    result_users = cur.fetchall()
+    cur.execute('SELECT * FROM messages')
+    result_messages=cur.fetchall()
+    bind={'id_user':id_user}
+    sql='SELECT message_id FROM allowed_messages WHERE user_id=:id_user'
+    cur.prepare(sql)
+    cur.execute(sql,bind)
+    result_allowed_messages=cur.fetchall()# [[],[],[]]
+    allowed_edit=[]# [id_message1,id_message2]
+    if(result_allowed_messages):
+        for element in result_allowed_messages:
+            for item in element:
+                allowed_edit.append(item)
+    lista=[]	
+    for res_user in result_users:
+        for res_message in result_messages:                
+            if(res_user[0]==res_message[1]):
+                # Przypadek pierwszy jesli jest wlascicielem wiadomosci
+                if(res_message[1]==id_user):
+                    lista.append({'name':res_user[1],'text':res_message[2],'edit':True,'delete':True,'message_id':res_message[0]})
+                #Przypadek drugi jezeli nie jest wlascicielem ale moze edytowac
+                elif((res_message[1]!=id_user) and (res_message[0] in allowed_edit)):
+                    lista.append({'name':res_user[1],'text':res_message[2],'edit':True,'delete':False,'message_id':res_message[0]})
+                #Przypadek trzeci nie jest ani wlascicielem ani nie ma uprawnien
+                else:
+                    lista.append({'name':res_user[1],'text':res_message[2],'edit':False,'delete':False,'message_id':res_message[0]})
+    return lista
