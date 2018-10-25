@@ -1,0 +1,260 @@
+{
+	"id": "ead97ff9-481f-733e-cd07-a04e952692c9",
+	"name": "BAI_1",
+	"description": "",
+	"order": [
+		"7c5f0e56-ca1b-3d90-fdf8-0fa649e7152d",
+		"ac402565-c962-f4aa-d2e0-fb64ed65dc14",
+		"c7ac7602-828b-8171-7c17-cfe75c918878",
+		"69c65322-e85d-8522-5991-582c4d7177a2",
+		"75228cbd-0f83-d861-1e52-7343609b92ce",
+		"96dd7ed6-05aa-85a5-2946-4640708f5e1a"
+	],
+	"folders": [],
+	"folders_order": [],
+	"timestamp": 1540499400696,
+	"owner": 0,
+	"public": false,
+	"requests": [
+		{
+			"id": "69c65322-e85d-8522-5991-582c4d7177a2",
+			"headers": "Authorization: Basic dXNlcjE6aGFzbG8x\n",
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Basic dXNlcjE6aGFzbG8x",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://127.0.0.1:5000/Ps042.php?par=hdfdfgha&par2=1&action=Zatwierdź",
+			"queryParams": [
+				{
+					"key": "par",
+					"value": "hdfdfgha",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "par2",
+					"value": "1",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "action",
+					"value": "Zatwierdź",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "GET",
+			"collectionId": "ead97ff9-481f-733e-cd07-a04e952692c9",
+			"data": null,
+			"dataMode": "params",
+			"name": "http://127.0.0.1:5000/Ps042.php?par=hdfdfgha&par2=1&action=Zatwierdź",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1540499459559,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		},
+		{
+			"id": "75228cbd-0f83-d861-1e52-7343609b92ce",
+			"headers": "Authorization: Basic dXNlcjE6aGFzbG8x\n",
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Basic dXNlcjE6aGFzbG8x",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://127.0.0.1:5000/Ps042.php?par=Inna+wiadomosc&action=Dodaj",
+			"queryParams": [
+				{
+					"key": "par",
+					"value": "Inna+wiadomosc",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "action",
+					"value": "Dodaj",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "GET",
+			"collectionId": "ead97ff9-481f-733e-cd07-a04e952692c9",
+			"data": null,
+			"dataMode": "params",
+			"name": "http://127.0.0.1:5000/Ps042.php?par=Inna+wiadomosc&action=Dodaj",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1540499464571,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		},
+		{
+			"id": "7c5f0e56-ca1b-3d90-fdf8-0fa649e7152d",
+			"headers": "Authorization: Basic dXNlcjI6aGFzbG8y\n",
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Basic dXNlcjI6aGFzbG8y",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://127.0.0.1:5000/Ps042.php?par=1&action=Edytuj",
+			"queryParams": [
+				{
+					"key": "par",
+					"value": "1",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "action",
+					"value": "Edytuj",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "GET",
+			"collectionId": "ead97ff9-481f-733e-cd07-a04e952692c9",
+			"data": null,
+			"dataMode": "params",
+			"name": "http://127.0.0.1:5000/Ps042.php?par=1&action=Edytuj",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1540499402520,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		},
+		{
+			"id": "96dd7ed6-05aa-85a5-2946-4640708f5e1a",
+			"headers": "Authorization: Basic dXNlcjE6aGFzbG8x\n",
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Basic dXNlcjE6aGFzbG8x",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://127.0.0.1:5000/Ps042.php?par=10&action=Usuń",
+			"queryParams": [
+				{
+					"key": "par",
+					"value": "10",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				},
+				{
+					"key": "action",
+					"value": "Usuń",
+					"equals": true,
+					"description": "",
+					"enabled": true
+				}
+			],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "GET",
+			"collectionId": "ead97ff9-481f-733e-cd07-a04e952692c9",
+			"data": null,
+			"dataMode": "params",
+			"name": "http://127.0.0.1:5000/Ps042.php?par=10&action=Usuń",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1540499470064,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		},
+		{
+			"id": "ac402565-c962-f4aa-d2e0-fb64ed65dc14",
+			"headers": "Authorization: Basic dXNlcjI6aGFzbG8y\n",
+			"headerData": [
+				{
+					"key": "Authorization",
+					"value": "Basic dXNlcjI6aGFzbG8y",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://127.0.0.1:5000/Ps04.php",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "GET",
+			"collectionId": "ead97ff9-481f-733e-cd07-a04e952692c9",
+			"data": null,
+			"dataMode": "params",
+			"name": "http://127.0.0.1:5000/Ps04.php",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1540499448004,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		},
+		{
+			"id": "c7ac7602-828b-8171-7c17-cfe75c918878",
+			"headers": "",
+			"headerData": [],
+			"url": "http://127.0.0.1:5000/Ps02.php",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "GET",
+			"collectionId": "ead97ff9-481f-733e-cd07-a04e952692c9",
+			"data": null,
+			"dataMode": "params",
+			"name": "http://127.0.0.1:5000/Ps02.php",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1540499453992,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {}
+		}
+	]
+}
