@@ -5,3 +5,7 @@ cd 'ścieżka do repozytorium'
 set FLASK_APP=hello.py
 set FLASK_ENV=development
 flask run
+
+W przypadku PowerShell zmienne należy ustawić poleceniami:
+$env:FLASK_APP = "hello.py"
+$env:FLASK_ENV = "development"

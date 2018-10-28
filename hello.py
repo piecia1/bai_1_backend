@@ -213,13 +213,13 @@ def params():
             for user in all_users:
                 #jezeli ma prawo edycji 
                 if(user[0] in allowed_users):
-                    list_user.append({'name':user[1],'edit':True})
+                    list_user.append({'user_id': user[0], 'name':user[1],'edit':True})
                 #jezeli jest wlascicielem
                 elif(user[0]==id_logged_user):
                     pass
                 #nie ma praw edycji
                 else:
-                    list_user.append({'name':user[1],'edit':False})
+                    list_user.append({'user_id': user[0], 'name':user[1],'edit':False})
             list_return={'message_id':result_message[0],'text':result_message[2],'users':list_user}
             cur.close()
             con.close()
