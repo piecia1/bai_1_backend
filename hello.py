@@ -264,7 +264,7 @@ def params():
             else:
                 cur.close()
                 con.close()
-                return jsonify(401)
+                abort(401)
             
         #Przypadek 3 jest wlascicielem
         elif(user_is_owner):
